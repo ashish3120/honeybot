@@ -34,6 +34,14 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@app.get("/")
+def health_check():
+    return {"status": "active", "service": "Agentic Honeypot"}
+
+@app.head("/")
+def health_check_head():
+    return {}
+
 @app.post("/honeypot", response_model=HoneypotResponse)
 async def honeypot_endpoint(
     request: HoneypotRequest, 
