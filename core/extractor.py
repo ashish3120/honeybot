@@ -2,37 +2,76 @@ import re
 
 def extract_intelligence(text: str) -> dict:
     """
-    Extracts intelligence (UPI, URLs, Phone numbers, Keywords) from text with improved regex.
+    Extracts scam intelligence from text:
+    - Bank names
+    - UPI IDs
+    - URLs
+    - Phone numbers
+    - Suspicious keywords / tactics
     """
-    
-    # Improved Regex patterns
-    # UPI: Handles dots, dashes, and varied domain suffixes
-    upi_pattern = r"[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
-    
-    # URLs: More comprehensive URL pattern including common phishing domains
-    url_pattern = r"(https?://(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?://(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"
-    
-    # Phone Numbers: Handles international formats, spaces, and dashes
-    phone_pattern = r"(\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9})"
-    
-    # Bank Account Numbers: Typically 9-18 digits in India/international context
-    bank_pattern = r"\b\d{9,18}\b"
-    
-    # Keywords to flag specifically for intelligence
-    suspicious_keywords_list = [
-        "pay", "transfer", "bank", "password", "pin", "cvv", "atm", 
-        "manager", "verification", "kyc", "documents", "login", "update",
-        "official", "department", "regulatory", "mandatory", "immediate"
-    ]
-    
+
     text_lower = text.lower()
-    
-    extracted = {
-        "bankAccounts": list(set(re.findall(bank_pattern, text))),
-        "upiIds": list(set(re.findall(upi_pattern, text))),
-        "phishingLinks": list(set(re.findall(url_pattern, text))),
-        "phoneNumbers": list(set([p.strip() for p in re.findall(phone_pattern, text) if len(re.sub(r'\D', '', p)) >= 10])),
-        "suspiciousKeywords": list(set([k for k in suspicious_keywords_list if k in text_lower]))
+
+    # =====================
+    # REGEX PATTERNS
+    # =====================
+
+    # UPI ID (strict & reliable)
+    upi_pattern = r"\b[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}\b"
+
+    # URLs
+    url_pattern = r"https?://[^\s]+|www\.[^\s]+"
+
+    # Phone numbers (India + general)
+    phone_pattern = r"\+?\d[\d\s\-()]{8,}\d"
+
+    # Bank account numbers (India/global heuristic)
+    bank_account_pattern = r"\b\d{9,18}\b"
+
+    # Bank name extraction from UPI domain
+    # Example: scammer.fraud@fakebank → fakebank
+    bank_name_pattern = r"@[a-zA-Z0-9.\-_]*?([a-zA-Z]{3,})\b"
+
+    # =====================
+    # SUSPICIOUS KEYWORDS / TACTICS
+    # =====================
+
+    suspicious_keywords_list = [
+        "otp", "one time password", "verify", "verification",
+        "urgent", "immediately", "right now", "locked", "blocked",
+        "suspended", "confirm", "kyc", "update",
+        "account", "bank", "upi", "fraud"
+    ]
+
+    # =====================
+    # EXTRACTION
+    # =====================
+
+    upi_ids = list(set(re.findall(upi_pattern, text)))
+    phishing_links = list(set(re.findall(url_pattern, text)))
+    phone_numbers = list(set([
+        p.strip() for p in re.findall(phone_pattern, text)
+        if len(re.sub(r"\D", "", p)) >= 10
+    ]))
+    bank_accounts = list(set(re.findall(bank_account_pattern, text)))
+
+    # Extract bank names from UPI IDs
+    bank_names = list(set([
+        match.group(1)
+        for upi in upi_ids
+        for match in [re.search(bank_name_pattern, upi)]
+        if match
+    ]))
+
+    suspicious_keywords = list(set([
+        k for k in suspicious_keywords_list if k in text_lower
+    ]))
+
+    return {
+        "bankAccounts": bank_accounts,
+        "bankNames": bank_names,
+        "upiIds": upi_ids,
+        "phishingLinks": phishing_links,
+        "phoneNumbers": phone_numbers,
+        "suspiciousKeywords": suspicious_keywords
     }
-    
-    return extracted
