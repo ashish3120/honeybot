@@ -42,6 +42,14 @@ def health_check():
 def health_check_head():
     return {}
 
+@app.head("/honeypot")
+def honeypot_head():
+    return {}
+
+@app.get("/honeypot")
+def honeypot_get():
+    return {"status": "active", "message": "This endpoint accepts POST requests for the honeypot."}
+
 @app.post("/honeypot", response_model=HoneypotResponse)
 async def honeypot_endpoint(
     request: HoneypotRequest, 
