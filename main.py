@@ -49,7 +49,7 @@ async def honeypot_endpoint(
     try:
         user_message = request.message.text
         session_id = request.sessionId
-        history = request.conversation_history or []
+        history = request.conversationHistory or []
 
         # 2. Scam Detection & Intelligence Extraction (Parallel ready)
         scam_detected = is_scam(user_message)

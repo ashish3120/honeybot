@@ -3,13 +3,23 @@ import random
 def generate_reply(text: str, conversation_history: list) -> str:
     """
     Generates a human-like, confused/cautious reply.
-    Does NOT mention scams.
+    Uses conversation_history to understand context and avoid repetition.
     """
     
-    # Simple rule-based responses if context matches, otherwise random neutral questions
-    
     text_lower = text.lower()
+    turn_count = len(conversation_history)
     
+    # 1. Use history to adjust persona (e.g., getting more frustrated or confused over time)
+    if turn_count > 3:
+        frustrated_responses = [
+            "Look, I'm really getting confused here. Can we just talk on the phone?",
+            "This is taking too long, I'm already late for my prayer meeting.",
+            "I've told you before, I don't understand these things. Why are you keeping me?",
+            "I'm going to have to ask my son to call you back, this is too much."
+        ]
+        return random.choice(frustrated_responses)
+
+    # 2. Context-specific responses
     if "otp" in text_lower or "code" in text_lower:
         return random.choice([
             "Wait, I didn't ask for any code. Why are you sending this?",
@@ -38,6 +48,17 @@ def generate_reply(text: str, conversation_history: list) -> str:
             "I can't go to the branch today, it's too far. Can you help me here?"
         ])
     
+    # 3. Acknowledge continuity if history exists
+    if turn_count > 0:
+        continuity_replies = [
+            "As I was saying, I'm still not sure about this.",
+            "Can you repeat that? I'm trying to write it down.",
+            "You still haven't explained why this is urgent.",
+            "Is there someone else I should be talking to?"
+        ]
+        return random.choice(continuity_replies)
+
+    # 4. First-turn generic replies
     generic_replies = [
         "I'm sorry, I didn't quite catch that. Could you clarify?",
         "Is this official? I haven't gotten any letters about this.",

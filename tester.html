@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honey-Pot API Tester Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .response-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #020617;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            display: none;
+        }
+
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            margin: 0;
+            overflow-x: auto;
+            color: #a5f3fc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .badge-success { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .badge-error { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .scam-pill {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            background: #334155;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin: 0.2rem;
+            transition: 0.2s;
+        }
+
+        .scam-pill:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Honey-Pot API Tester Pro</h1>
+            <p class="subtitle">Securely test your Agentic Honeypot endpoint logic</p>
+
+            <div class="form-group">
+                <label>Target Endpoint URL</label>
+                <input type="text" id="url" value="https://honeybot-u9sl.onrender.com/honeypot">
+            </div>
+
+            <div class="grid">
+                <div class="form-group">
+                    <label>x-api-key</label>
+                    <input type="password" id="apiKey" value="default_secret_key">
+                </div>
+                <div class="form-group">
+                    <label>Session ID</label>
+                    <input type="text" id="sessionId" value="browser-ui-test-1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Scammer Message</label>
+                <textarea id="message" rows="3">Your account is blocked. Send 1000 to upi@bank to verify.</textarea>
+                <div style="margin-top: 0.5rem;">
+                    <span class="scam-pill" onclick="setMsg('Your KYC is pending. Click here: http://bit.ly/fake')">KYC Scam</span>
+                    <span class="scam-pill" onclick="setMsg('URGENT: Blocked account. Call 9876543210')">Phone Scam</span>
+                    <span class="scam-pill" onclick="setMsg('Congratulations! You won a lottery. Pay 500 fees to collect.')">Lottery Scam</span>
+                </div>
+            </div>
+
+            <button onclick="testApi()" id="testBtn">Execute Test Request</button>
+
+            <div id="responseBox" class="response-container">
+                <div id="statusBadge" class="badge"></div>
+                <pre id="responseOutput"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setMsg(txt) {
+            document.getElementById('message').value = txt;
+        }
+
+        async function testApi() {
+            const btn = document.getElementById('testBtn');
+            const url = document.getElementById('url').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const msg = document.getElementById('message').value;
+            const sid = document.getElementById('sessionId').value;
+            const box = document.getElementById('responseBox');
+            const output = document.getElementById('responseOutput');
+            const badge = document.getElementById('statusBadge');
+
+            btn.disabled = true;
+            btn.innerText = 'Testing...';
+            box.style.display = 'none';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey
+                    },
+                    body: JSON.stringify({
+                        sessionId: sid,
+                        message: { text: msg },
+                        conversationHistory: []
+                    })
+                });
+
+                const data = await response.json();
+                
+                box.style.display = 'block';
+                badge.innerText = `HTTP ${response.status}`;
+                badge.className = `badge ${response.ok ? 'badge-success' : 'badge-error'}`;
+                output.innerText = JSON.stringify(data, null, 2);
+
+            } catch (err) {
+                box.style.display = 'block';
+                badge.innerText = 'FETCH ERROR';
+                badge.className = 'badge badge-error';
+                output.innerText = err.message + '\n\nNote: If this is a CORS error, run the browser with security checks disabled or use the Swagger /docs page instead.';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Execute Test Request';
+            }
+        }
+    </script>
+</body>
+</html>
