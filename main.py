@@ -12,7 +12,20 @@ from utils.callback import trigger_callback
 # Load environment variables
 load_dotenv()
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Simple in-memory set to prevent spamming callbacks for the same session
+processed_sessions = set()
 
 # Pydantic models
 class Message(BaseModel):
@@ -80,7 +93,9 @@ async def honeypot_endpoint(
             extracted_data["bankAccounts"]
         ])
         
-        if scam_detected or has_intel:
+        should_callback = (scam_detected or has_intel) and (session_id not in processed_sessions)
+
+        if should_callback:
             total_turns = len(history) + 1
             logger.info(f"Scam/Intel detected for session {session_id}. Triggering callback.")
             
@@ -91,6 +106,10 @@ async def honeypot_endpoint(
                 total_messages=total_turns, 
                 extracted_intelligence=extracted_data
             )
+            processed_sessions.add(session_id)
+        elif (scam_detected or has_intel) and (session_id in processed_sessions):
+             logger.info(f"Scam/Intel detected for session {session_id}, but callback already sent.")
+
 
         # 4. Generate Reply
         reply_text = generate_reply(user_message, history)
